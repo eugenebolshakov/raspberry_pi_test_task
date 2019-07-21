@@ -1,11 +1,12 @@
 require "minitest/autorun"
-require "bundler/setup"
+require "./api"
+Bundler.setup(:default, :test)
 require "rack/test"
 require "json"
 
 class IntegrationTest < Minitest::Test
   def test_list_users
-    api.get("/users.json")
+    api.get("/users")
     expected = { data: [] }
     assert_equal expected.to_json, api.last_response.body
   end
@@ -15,12 +16,6 @@ class IntegrationTest < Minitest::Test
   end
 
   def app
-    Rack::Builder.new.run(lambda { |env|
-      [
-        200,
-        { "Content-Type" => "application/json" },
-        %W{{"data": []}}
-      ]
-    })
+    Sinatra::Application
   end
 end
