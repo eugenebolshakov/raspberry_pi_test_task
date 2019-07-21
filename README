@@ -16,3 +16,8 @@ framework):
   SQLite would be fine
 * have passwords which are stored securely
 * have some sort of documentation (tests are fine)
+
+# Setup
+
+* Install Ruby (version 2.6.3 was used for this task)
+* Run `bundle install`
