@@ -2,13 +2,12 @@ require "minitest/autorun"
 require "./api"
 Bundler.setup(:default, :test)
 require "rack/test"
-require "json"
 
 class IntegrationTest < Minitest::Test
   def test_list_users
     api.get("/users")
-    expected = { data: [] }
-    assert_equal expected.to_json, api.last_response.body
+    expected = JSONAPI.render(data: []).to_json
+    assert_equal expected, api.last_response.body
   end
 
   def api

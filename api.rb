@@ -1,8 +1,8 @@
 require "bundler"
 Bundler.setup(:default)
 require "sinatra"
-require "json"
+require "jsonapi/renderer"
 
 get "/users", provides: "json" do
-  { data: [] }.to_json
+  JSONAPI.render(data: []).to_json
 end
