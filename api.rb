@@ -63,3 +63,7 @@ post "/users", provides: "json" do
   headers("Location" => "/user/#{user_id}")
   $API.get_user(user_id)
 end
+
+get "/user/:id", provides: "json" do
+  $API.get_user(params[:id])
+end
