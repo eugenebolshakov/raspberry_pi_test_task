@@ -4,10 +4,40 @@ Bundler.setup(:default, :test)
 require "rack/test"
 
 class IntegrationTest < Minitest::Test
-  def test_list_users
+  CONTENT_TYPE = "application/vnd.api+json"
+
+  def test_api
     api.get("/users")
-    expected = JSONAPI.render(data: []).to_json
-    assert_equal expected, api.last_response.body
+    assert_equal 200, api.last_response.status
+
+    expected = { data: [] }
+    assert_equal expected.to_json, api.last_response.body
+
+    resource = {
+      data: {
+        type: "users",
+        attributes: { 
+          username: "user",
+          email: "user@example.com",
+          password: "pa$$w0rd"
+        }
+      }
+    }
+    api.post("/users", resource.to_json, { "CONTENT_TYPE" => CONTENT_TYPE })
+    assert_equal 201, api.last_response.status
+
+    location = api.last_response.headers["Location"]
+    assert_match /\/user\/\d+$/, location
+
+    expected = {
+      data: {
+        type: "users",
+        id: location[/\/(\d+)$/, 1].to_i,
+        attributes: { username: "user", email: "user@example.com" },
+        links: { self: location }
+      }
+    }
+    assert_equal expected.to_json, api.last_response.body
   end
 
   def api
