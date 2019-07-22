@@ -1,5 +1,3 @@
-ENV["RACK_ENV"] = "test"
-
 require "bundler"
 Bundler.setup(:default)
 require "sinatra"
@@ -86,6 +84,7 @@ patch "/user/:id", provides: "json" do
 end
 
 delete "/user/:id", provides: "json" do
+  halt(401, "API key is missing or invalid") unless request.env["X-API-KEY"] == ENV["API_KEY"]
   $API.delete_user(params[:id])
   status(204)
 end

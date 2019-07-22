@@ -21,3 +21,4 @@ framework):
 
 * Install Ruby (version 2.6.3 was used for this task)
 * Run `bundle install`
+* Set `API_KEY` environment variable for user deletion requests

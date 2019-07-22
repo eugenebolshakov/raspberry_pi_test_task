@@ -7,6 +7,7 @@ require "rack/test"
 
 class IntegrationTest < Minitest::Test
   CONTENT_TYPE = "application/vnd.api+json"
+  ENV["API_KEY"] = API_KEY = "TEST-API-KEY"
 
   def test_api
     # POST /users
@@ -105,7 +106,7 @@ class IntegrationTest < Minitest::Test
     assert_equal JSON.parse(expected), JSON.parse(api.last_response.body)
 
     # DELETE /user/:id
-    api.delete("/user/#{id}")
+    api.delete("/user/#{id}", nil, { "X-API-KEY" => API_KEY })
     assert_equal 204, api.last_response.status
     assert_empty api.last_response.body
 
