@@ -103,6 +103,17 @@ class IntegrationTest < Minitest::Test
       }
     `
     assert_equal JSON.parse(expected), JSON.parse(api.last_response.body)
+
+    # DELETE /user/:id
+    api.delete("/user/#{id}")
+    assert_equal 204, api.last_response.status
+    assert_empty api.last_response.body
+
+    api.get("/users")
+    assert_equal 200, api.last_response.status
+
+    expected = %Q`{"data": []}`
+    assert_equal JSON.parse(expected), JSON.parse(api.last_response.body)
   end
 
   def api

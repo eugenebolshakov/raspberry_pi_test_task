@@ -41,6 +41,10 @@ class JSONAPI
     end
   end
 
+  def delete_user(id)
+    @users.delete(find_user(id))
+  end
+
   private
 
   def serialise_user(user)
@@ -79,4 +83,9 @@ end
 patch "/user/:id", provides: "json" do
   $API.update_user(params[:id], request.body.read)
   $API.get_user(params[:id])
+end
+
+delete "/user/:id", provides: "json" do
+  $API.delete_user(params[:id])
+  status(204)
 end
