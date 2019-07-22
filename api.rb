@@ -18,11 +18,11 @@ class JSONAPI
   end
 
   def create_user(json)
-    data = JSON.parse(json).fetch("data")
+    attrs = JSON.parse(json).fetch("data").fetch("attributes")
     @users << User.new(
       "1",
-      data.fetch("attributes").fetch("username"),
-      data.fetch("attributes").fetch("email"),
+      attrs.fetch("username"),
+      attrs.fetch("email"),
     )
     "1"
   end
@@ -31,6 +31,14 @@ class JSONAPI
     {
       data: serialise_user(find_user(id))
     }.to_json
+  end
+
+  def update_user(id, json)
+    user = find_user(id)
+    attrs = JSON.parse(json).fetch("data").fetch("attributes")
+    attrs.each do |attr, value|
+      user.send("#{attr}=", value)
+    end
   end
 
   private
@@ -65,5 +73,10 @@ post "/users", provides: "json" do
 end
 
 get "/user/:id", provides: "json" do
+  $API.get_user(params[:id])
+end
+
+patch "/user/:id", provides: "json" do
+  $API.update_user(params[:id], request.body.read)
   $API.get_user(params[:id])
 end

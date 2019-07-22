@@ -58,6 +58,34 @@ class IntegrationTest < Minitest::Test
     `
     assert_equal JSON.parse(expected), JSON.parse(api.last_response.body)
 
+    # PATCH /user/:id
+    api.patch("/user/#{id}", %Q`
+      {
+        "data": {
+          "type": "users",
+          "id": "#{id}",
+          "attributes": {
+            "username": "new-username"
+          }
+        }
+      }
+    `, { "CONTENT_TYPE" => CONTENT_TYPE })
+    assert_equal 200, api.last_response.status
+
+    expected = %Q`
+      {
+        "data": {
+          "type": "users",
+          "id": "#{id}",
+          "attributes": { 
+            "username": "new-username",
+            "email": "user@example.com"
+          }
+        }
+      }
+    `
+    assert_equal JSON.parse(expected), JSON.parse(api.last_response.body)
+
     # GET /user/:id
     api.get("/user/#{id}")
     assert_equal 200, api.last_response.status
@@ -68,7 +96,7 @@ class IntegrationTest < Minitest::Test
           "type": "users",
           "id": "#{id}",
           "attributes": {
-            "username": "user",
+            "username": "new-username",
             "email": "user@example.com"
           }
         }
