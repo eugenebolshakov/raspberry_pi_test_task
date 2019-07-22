@@ -5,7 +5,7 @@ require "sinatra"
 require "./lib/user"
 require "./lib/jsonapi"
 
-$API = JSONAPI.new([])
+$API = JSONAPI.new
 
 get "/users", provides: "json" do
   $API.list_users
