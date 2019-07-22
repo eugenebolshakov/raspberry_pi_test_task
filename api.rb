@@ -2,64 +2,8 @@ require "bundler"
 Bundler.setup(:default)
 require "sinatra"
 
-User = Struct.new(:id, :username, :email)
-
-class JSONAPI
-  def initialize(users = [])
-    @users = []
-  end
-
-  def list_users
-    {
-      data: @users.map { |user| serialise_user(user) }
-    }.to_json
-  end
-
-  def create_user(json)
-    attrs = JSON.parse(json).fetch("data").fetch("attributes")
-    @users << User.new(
-      "1",
-      attrs.fetch("username"),
-      attrs.fetch("email"),
-    )
-    "1"
-  end
-
-  def get_user(id)
-    {
-      data: serialise_user(find_user(id))
-    }.to_json
-  end
-
-  def update_user(id, json)
-    user = find_user(id)
-    attrs = JSON.parse(json).fetch("data").fetch("attributes")
-    attrs.each do |attr, value|
-      user.send("#{attr}=", value)
-    end
-  end
-
-  def delete_user(id)
-    @users.delete(find_user(id))
-  end
-
-  private
-
-  def serialise_user(user)
-    {
-      type: "users",
-      id: user.id,
-      attributes: {
-        username: user.username,
-        email: user.email
-      }
-    }
-  end
-
-  def find_user(id)
-    @users.find { |user| user.id == id }
-  end
-end
+require "./lib/user"
+require "./lib/jsonapi"
 
 $API = JSONAPI.new([])
 
