@@ -1,3 +1,5 @@
+ENV["RACK_ENV"] = "test"
+
 require "minitest/autorun"
 require "./api"
 Bundler.setup(:default, :test)
@@ -10,8 +12,8 @@ class IntegrationTest < Minitest::Test
     api.get("/users")
     assert_equal 200, api.last_response.status
 
-    expected = { data: [] }
-    assert_equal expected.to_json, api.last_response.body
+    expected = %Q`{"data": []}`
+    assert_equal JSON.parse(expected), JSON.parse(api.last_response.body)
 
     resource = {
       data: {
@@ -29,15 +31,36 @@ class IntegrationTest < Minitest::Test
     location = api.last_response.headers["Location"]
     assert_match /\/user\/\d+$/, location
 
-    expected = {
-      data: {
-        type: "users",
-        id: location[/\/(\d+)$/, 1].to_i,
-        attributes: { username: "user", email: "user@example.com" },
-        links: { self: location }
+    id = location[/\/(\d+)$/, 1].to_i
+    expected = %Q`
+      {
+        "data": {
+          "type": "users",
+          "id": "#{id}",
+          "attributes": { "username": "user", "email": "user@example.com" }
+        }
       }
-    }
-    assert_equal expected.to_json, api.last_response.body
+    `
+    assert_equal JSON.parse(expected), JSON.parse(api.last_response.body)
+
+    api.get("/users")
+    assert_equal 200, api.last_response.status
+
+    expected = %Q`
+      {
+        "data": [
+          {
+            "type": "users",
+            "id": "#{id}",
+            "attributes": { 
+              "username": "user",
+              "email": "user@example.com"
+            }
+          }
+        ]
+      }
+    `
+    assert_equal JSON.parse(expected), JSON.parse(api.last_response.body)
   end
 
   def api
