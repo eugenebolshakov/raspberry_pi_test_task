@@ -8,6 +8,7 @@ class JSONAPI
         primary_key :id
         String :username, unique: true, null: false
         String :email, unique: true, null: false
+        String :password_hash, null: false
       end
     end
 

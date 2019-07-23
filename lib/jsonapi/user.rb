@@ -1,3 +1,12 @@
+require "bcrypt"
+
 class User < Sequel::Model
-  attr_accessor :password
+  def password
+    @password ||= BCrypt::Password.new(password_hash)
+  end
+
+  def password=(value)
+    @password = BCrypt::Password.create(value)
+    self.password_hash = @password
+  end
 end
