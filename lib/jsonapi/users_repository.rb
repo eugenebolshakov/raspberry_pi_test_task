@@ -1,35 +1,45 @@
+require "sequel"
+
 class JSONAPI
   class UsersRepository
-    def initialize
-      @users = []
+    def self.setup(db_uri)
+      db = Sequel.connect(db_uri)
+      db.create_table?(:users) do
+        primary_key :id
+        String :username, unique: true, null: false
+        String :email, unique: true, null: false
+      end
+    end
+
+    def initialize(db_uri)
+      Sequel.connect(db_uri)
+      require "./lib/jsonapi/user"
     end
 
     def all
-      @users.dup
+      User.all
     end
 
     def get(id)
-      @users.find { |user| user.id == id }
+      User[id]
     end
 
     def create(attrs)
-      (@users << User.new(
-        "1",
-        attrs.fetch("username"),
-        attrs.fetch("email")
-      )).last
+      User.new(attrs).then do |user|
+        user.save
+        user
+      end
     end
 
     def update(id, attrs)
       get(id).then do |user|
-        attrs.each do |attr, value|
-          user.send("#{attr}=", value)
-        end
+        user.update(attrs)
+        user
       end
     end
 
     def delete(id)
-      @users.delete(get(id))
+      get(id).delete
     end
   end
 end

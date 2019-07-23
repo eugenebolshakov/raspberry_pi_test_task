@@ -1,9 +1,15 @@
-ENV["RACK_ENV"] = "test"
-
 require "minitest/autorun"
-require "./api"
+require "bundler"
 Bundler.setup(:default, :test)
+
+ENV["RACK_ENV"] = "test"
+ENV["DB_URI"] = "sqlite:/file::memory:?cache=shared"
+
+require "./lib/jsonapi"
+JSONAPI.setup(db_uri: ENV["DB_URI"])
+
 require "rack/test"
+require "./api"
 
 class IntegrationTest < Minitest::Test
   CONTENT_TYPE = "application/vnd.api+json"

@@ -2,8 +2,12 @@ class JSONAPI
   require "./lib/jsonapi/serialiser"
   require "./lib/jsonapi/users_repository"
 
-  def initialize
-    @users = UsersRepository.new
+  def self.setup(db_uri:)
+    UsersRepository.setup(db_uri)
+  end
+
+  def initialize(db_uri:)
+    @users = UsersRepository.new(db_uri)
   end
 
   def list_users

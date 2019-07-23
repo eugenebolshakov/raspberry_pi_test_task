@@ -18,7 +18,7 @@ class JSONAPI
       def serialise_user_resource(user)
         {
           type: "users",
-          id: user.id,
+          id: user.id.to_s,
           attributes: {
             username: user.username,
             email: user.email

@@ -1,11 +1,9 @@
 require "bundler"
 Bundler.setup(:default)
 require "sinatra"
-
-require "./lib/user"
 require "./lib/jsonapi"
 
-$API = JSONAPI.new
+$API = JSONAPI.new(db_uri: ENV["DB_URI"])
 
 get "/users", provides: "json" do
   $API.list_users
