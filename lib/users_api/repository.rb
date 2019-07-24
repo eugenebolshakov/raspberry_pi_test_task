@@ -1,9 +1,9 @@
 require "sequel"
 
-class JSONAPI
-  class UsersRepository
-    def self.setup(db_uri, force: false)
-      db = Sequel.connect(db_uri)
+module UsersAPI
+  class Repository
+    def self.setup(db_url, force: false)
+      db = Sequel.connect(db_url)
       method = force ? :create_table! : :create_table?
       db.public_send(method, :users) do
         primary_key :id
@@ -13,9 +13,9 @@ class JSONAPI
       end
     end
 
-    def initialize(db_uri)
-      Sequel.connect(db_uri)
-      require "./lib/jsonapi/user"
+    def initialize(db_url)
+      Sequel.connect(db_url)
+      require "./lib/users_api/user"
     end
 
     def all

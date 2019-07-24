@@ -1,20 +1,10 @@
-require "minitest/autorun"
-require "bundler"
-Bundler.setup(:default, :test)
-
-ENV["RACK_ENV"] = "test"
-ENV["DB_URI"] = "sqlite:/file::memory:?cache=shared"
-ENV["API_KEY"] = API_KEY = "TEST-API-KEY"
-
-require "./lib/jsonapi"
-JSONAPI::UsersRepository.setup(ENV["DB_URI"], force: true)
-
+require "./test/test_helper"
 require "rack/test"
-require "./api"
+require "./lib/users_api"
 
 describe "Users API" do
   before do
-    JSONAPI::UsersRepository.setup(ENV["DB_URI"], force: true)
+    UsersAPI::Repository.setup(ENV["DB_URL"], force: true)
   end
 
   describe "GET to /users" do
@@ -201,9 +191,13 @@ describe "Users API" do
   end
 
   def perform_request(params)
+    if params[:headers]
+      params[:headers].each do |header, value|
+        api.header(header, value)
+      end
+    end
     args = [params.fetch(:method), params.fetch(:path)]
     args << params[:body] unless params.fetch(:method) == :get
-    args << params[:headers]
     api.public_send(*args)
   end
 
@@ -263,10 +257,6 @@ describe "Users API" do
   end
 
   def api
-    @api ||= Rack::Test::Session.new(Rack::MockSession.new(app))
-  end
-
-  def app
-    Sinatra::Application
+    @api ||= Rack::Test::Session.new(Rack::MockSession.new(UsersAPI::App))
   end
 end

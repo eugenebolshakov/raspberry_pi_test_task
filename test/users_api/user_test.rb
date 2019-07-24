@@ -1,15 +1,7 @@
-require "minitest/autorun"
-require "bundler"
-Bundler.setup(:default, :test)
+require "./test/test_helper"
+require "./lib/users_api/user"
 
-ENV["DB_URI"] = "sqlite:/file::memory:?cache=shared"
-
-require "./lib/jsonapi"
-JSONAPI.setup(db_uri: ENV["DB_URI"])
-
-require "./lib/jsonapi/user"
-
-class JSONAPI
+module UsersAPI
   class UserTest < Minitest::Test
     def test_password_hasing
       user = User.new(password: "pa$$w0rd")

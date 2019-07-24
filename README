@@ -21,4 +21,10 @@ framework):
 
 * Install Ruby (version 2.6.3 was used for this task)
 * Run `bundle install`
-* Set `API_KEY` environment variable for user deletion requests
+* Set ENV variables (see `.env.source` for a list of variables)
+* Run `rake setup`
+
+* Use
+
+* Start the app with `rake start`
+* Run tests with `rake test`
