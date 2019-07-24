@@ -41,5 +41,11 @@ module UsersAPI
       assert_equal ["is already taken"], user.errors[:username]
       assert_equal ["is already taken"], user.errors[:email]
     end
+
+    it "validaes format of email" do
+      user = User.new(email: "invalid")
+      refute user.valid?
+      assert_equal ["is not a valid email"], user.errors[:email]
+    end
   end
 end
