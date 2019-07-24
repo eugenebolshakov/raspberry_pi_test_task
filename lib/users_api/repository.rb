@@ -31,6 +31,8 @@ module UsersAPI
         user.save
         user
       end
+    rescue Sequel::ValidationFailed => e
+      raise InvalidRequest.new(e)
     end
 
     def update(id, attrs)

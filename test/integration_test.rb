@@ -107,6 +107,42 @@ describe "Users API" do
         `
       )
     end
+
+    it "handles invalid data" do
+      perform_request(
+        method: :post,
+        path: "/users", 
+        body: %Q`
+          {
+            "data": {
+              "type": "users",
+              "attributes": { 
+                "username": "",
+                "email": "",
+                "password": ""
+              }
+            }
+          }
+        `,
+        headers: {
+          "CONTENT_TYPE" => "application/vnd.api+json" 
+        }
+      )
+
+      assert_response(
+        status: 400,
+        body: %Q`
+          {
+            "errors": [
+              {
+                "title": "UsersAPI::InvalidRequest",
+                "detail": "username is not present, email is not present, password is not present"
+              }
+            ]
+          }
+        `
+      )
+    end
   end
 
   describe "GET to /user/:id" do
