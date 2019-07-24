@@ -20,7 +20,7 @@ module UsersAPI
     post "/users", provides: "json" do
       user_id = json_api.create_user(request.body.read)
       status(201)
-      headers("Location" => "/user/#{user_id}")
+      headers("Location" => "#{request.scheme}://#{request.host}/user/#{user_id}")
       json_api.get_user(user_id)
     end
 

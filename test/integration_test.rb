@@ -62,7 +62,7 @@ describe "Users API" do
 
       assert_response(
         status: 201,
-        headers: { "Location" => "/user/1" },
+        headers: { "Location" => "http://example.org/user/1" },
         body: %Q`
           {
             "data": {
