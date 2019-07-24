@@ -2,9 +2,10 @@ require "sequel"
 
 class JSONAPI
   class UsersRepository
-    def self.setup(db_uri)
+    def self.setup(db_uri, force: false)
       db = Sequel.connect(db_uri)
-      db.create_table?(:users) do
+      method = force ? :create_table! : :create_table?
+      db.public_send(method, :users) do
         primary_key :id
         String :username, unique: true, null: false
         String :email, unique: true, null: false

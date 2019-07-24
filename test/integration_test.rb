@@ -4,123 +4,262 @@ Bundler.setup(:default, :test)
 
 ENV["RACK_ENV"] = "test"
 ENV["DB_URI"] = "sqlite:/file::memory:?cache=shared"
+ENV["API_KEY"] = API_KEY = "TEST-API-KEY"
 
 require "./lib/jsonapi"
-JSONAPI.setup(db_uri: ENV["DB_URI"])
+JSONAPI::UsersRepository.setup(ENV["DB_URI"], force: true)
 
 require "rack/test"
 require "./api"
 
-class IntegrationTest < Minitest::Test
-  CONTENT_TYPE = "application/vnd.api+json"
-  ENV["API_KEY"] = API_KEY = "TEST-API-KEY"
+describe "Users API" do
+  before do
+    JSONAPI::UsersRepository.setup(ENV["DB_URI"], force: true)
+  end
 
-  def test_api
-    # POST /users
-    resource = {
-      data: {
-        type: "users",
-        attributes: { 
-          username: "user",
-          email: "user@example.com",
-          password: "pa$$w0rd"
-        }
-      }
-    }
-    api.post("/users", resource.to_json, { "CONTENT_TYPE" => CONTENT_TYPE })
-    assert_equal 201, api.last_response.status
+  describe "GET to /users" do
+    before do
+      create_user
+    end
 
-    location = api.last_response.headers["Location"]
-    assert_match /\/user\/\d+$/, location
+    it "lists users" do
+      perform_request(
+        method: :get,
+        path: "/users"
+      )
 
-    id = location[/\/(\d+)$/, 1].to_i
-    expected = %Q`
-      {
-        "data": {
-          "type": "users",
-          "id": "#{id}",
-          "attributes": { "username": "user", "email": "user@example.com" }
-        }
-      }
-    `
-    assert_equal JSON.parse(expected), JSON.parse(api.last_response.body)
-
-    # GET /users
-    api.get("/users")
-    assert_equal 200, api.last_response.status
-
-    expected = %Q`
-      {
-        "data": [
+      assert_response(
+        status: 200,
+        body: %Q`
           {
-            "type": "users",
-            "id": "#{id}",
-            "attributes": { 
-              "username": "user",
-              "email": "user@example.com"
+            "data": [
+              {
+                "type": "users",
+                "id": "1",
+                "attributes": {
+                  "username": "user",
+                  "email": "user@example.com" 
+                }
+              }
+            ]
+          }
+        `
+      )
+    end
+  end
+
+  describe "POST to /users" do
+    it "creates a user" do
+      perform_request(
+        method: :post,
+        path: "/users", 
+        body: %Q`
+          {
+            "data": {
+              "type": "users",
+              "attributes": { 
+                "username": "user",
+                "email": "user@example.com",
+                "password": "pa$$w0rd"
+              }
             }
           }
-        ]
-      }
-    `
-    assert_equal JSON.parse(expected), JSON.parse(api.last_response.body)
+        `,
+        headers: {
+          "CONTENT_TYPE" => "application/vnd.api+json" 
+        }
+      )
 
-    # PATCH /user/:id
-    api.patch("/user/#{id}", %Q`
-      {
-        "data": {
-          "type": "users",
-          "id": "#{id}",
-          "attributes": {
-            "username": "new-username"
+      assert_response(
+        status: 201,
+        headers: { "Location" => "/user/1" },
+        body: %Q`
+          {
+            "data": {
+              "type": "users",
+              "id": "1",
+              "attributes": {
+                "username": "user",
+                "email": "user@example.com" 
+              }
+            }
+          }
+        `
+      )
+
+      assert_users([
+        {
+          id: "1",
+          username: "user",
+          email: "user@example.com"
+        }
+      ])
+    end
+  end
+
+  describe "GET to /user/:id" do
+    before do
+      create_user
+    end
+
+    it "returns user" do
+      perform_request(
+        method: :get,
+        path: "/user/1"
+      )
+
+      assert_response(
+        status: 200,
+        body: %Q`
+          {
+            "data": {
+              "type": "users",
+              "id": "1",
+              "attributes": {
+                "username": "user",
+                "email": "user@example.com" 
+              }
+            }
+          }
+        `
+      )
+    end
+  end
+
+  describe "PATCH to /user/:id" do
+    before do
+      create_user
+    end
+
+    it "updates user" do
+      perform_request(
+        method: :patch,
+        path: "/user/1", 
+        body: %Q`
+          {
+            "data": {
+              "type": "users",
+              "id": "1",
+              "attributes": { 
+                "username": "new-name"
+              }
+            }
+          }
+        `,
+        headers: { 
+          "CONTENT_TYPE" => "application/vnd.api+json" 
+        }
+      )
+
+      assert_response(
+        status: 200,
+        body: %Q`
+          {
+            "data": {
+              "type": "users",
+              "id": "1",
+              "attributes": {
+                "username": "new-name",
+                "email": "user@example.com" 
+              }
+            }
+          }
+        `
+      )
+
+      assert_users([
+        {
+          id: "1",
+          username: "new-name",
+          email: "user@example.com"
+        }
+      ])
+    end
+  end
+
+  describe "DELETE to /user/:id" do
+    before do
+      create_user
+    end
+
+    it "deletes user" do
+      perform_request(
+        method: :delete,
+        path: "/user/1",
+        headers: {
+          "X-API-KEY" => API_KEY
+        }
+      )
+
+      assert_response(
+        status: 204,
+        body: ""
+      )
+
+      assert_users([])
+    end
+  end
+
+  def perform_request(params)
+    args = [params.fetch(:method), params.fetch(:path)]
+    args << params[:body] unless params.fetch(:method) == :get
+    args << params[:headers]
+    api.public_send(*args)
+  end
+
+  def assert_response(params)
+    assert_equal params.fetch(:status), api.last_response.status
+    if params.fetch(:body) == ""
+      assert_equal "", api.last_response.body
+    else
+      assert_equal JSON.parse(params.fetch(:body)), JSON.parse(api.last_response.body)
+    end
+    if params[:headers]
+      params[:headers].each do |header, value|
+        assert_equal value, api.last_response.headers[header]
+      end
+    end
+  end
+
+  def assert_users(users_data)
+    perform_request(method: :get, path: "/users")
+    assert_response(
+      status: 200,
+      body: {
+        data: users_data.map { |user|
+          {
+            type: "users",
+            id: user.fetch(:id),
+            attributes: {
+              username: user.fetch(:username),
+              email: user.fetch(:email)
+            }
           }
         }
-      }
-    `, { "CONTENT_TYPE" => CONTENT_TYPE })
-    assert_equal 200, api.last_response.status
+      }.to_json
+    )
+  end
 
-    expected = %Q`
-      {
-        "data": {
-          "type": "users",
-          "id": "#{id}",
-          "attributes": { 
-            "username": "new-username",
-            "email": "user@example.com"
+  def create_user
+    perform_request(
+      method: :post,
+      path: "/users", 
+      body: %Q`
+        {
+          "data": {
+            "type": "users",
+            "attributes": { 
+              "username": "user",
+              "email": "user@example.com",
+              "password": "pa$$w0rd"
+            }
           }
         }
+      `,
+      headers: { 
+        "CONTENT_TYPE" => "application/vnd.api+json"
       }
-    `
-    assert_equal JSON.parse(expected), JSON.parse(api.last_response.body)
-
-    # GET /user/:id
-    api.get("/user/#{id}")
-    assert_equal 200, api.last_response.status
-
-    expected = %Q`
-      {
-        "data": {
-          "type": "users",
-          "id": "#{id}",
-          "attributes": {
-            "username": "new-username",
-            "email": "user@example.com"
-          }
-        }
-      }
-    `
-    assert_equal JSON.parse(expected), JSON.parse(api.last_response.body)
-
-    # DELETE /user/:id
-    api.delete("/user/#{id}", nil, { "X-API-KEY" => API_KEY })
-    assert_equal 204, api.last_response.status
-    assert_empty api.last_response.body
-
-    api.get("/users")
-    assert_equal 200, api.last_response.status
-
-    expected = %Q`{"data": []}`
-    assert_equal JSON.parse(expected), JSON.parse(api.last_response.body)
+    )
   end
 
   def api
