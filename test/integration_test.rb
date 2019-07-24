@@ -85,6 +85,28 @@ describe "Users API" do
         }
       ])
     end
+
+    it "handles invalid JSON" do
+      perform_request(
+        method: :post,
+        path: "/users", 
+        body: "NOT-JSON"
+      )
+
+      assert_response(
+        status: 400,
+        body: %Q`
+          {
+            "errors": [
+              {
+                "title": "UsersAPI::InvalidRequest",
+                "detail": "767: unexpected token at 'NOT-JSON'"
+              }
+            ]
+          }
+        `
+      )
+    end
   end
 
   describe "GET to /user/:id" do

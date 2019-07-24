@@ -6,6 +6,7 @@ require "sinatra/base"
 module UsersAPI
   require "./lib/users_api/json_api"
   require "./lib/users_api/repository"
+  require "./lib/users_api/errors"
 
   def self.setup
     Repository.setup(ENV.fetch("DB_URL"))
@@ -36,6 +37,11 @@ module UsersAPI
       halt(401, "API key is missing or invalid") unless request.env["HTTP_X_API_KEY"] == ENV.fetch("API_KEY")
       json_api.delete_user(params[:id])
       status(204)
+    end
+
+    error InvalidRequest do
+      status(400)
+      json_api.error(env['sinatra.error'])
     end
 
     private

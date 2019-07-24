@@ -27,5 +27,9 @@ module UsersAPI
     def delete_user(id)
       @users.delete(id)
     end
+
+    def error(error)
+      Serialiser.serialise_error(error).to_json
+    end
   end
 end

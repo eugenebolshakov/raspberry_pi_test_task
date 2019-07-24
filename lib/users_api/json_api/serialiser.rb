@@ -12,6 +12,12 @@ module UsersAPI
 
         def deserialise_user(json)
           JSON.parse(json).fetch("data").fetch("attributes")
+        rescue JSON::ParserError => e
+          raise InvalidRequest.new(e)
+        end
+
+        def serialise_error(error)
+          { errors: [{ title: error.class.name, detail: error.message }] }
         end
 
         private
