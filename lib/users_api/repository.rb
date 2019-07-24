@@ -23,7 +23,7 @@ module UsersAPI
     end
 
     def get(id)
-      User[id]
+      User[id] or raise NotFound
     end
 
     def create(attrs)

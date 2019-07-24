@@ -44,6 +44,10 @@ module UsersAPI
       json_api.error(env['sinatra.error'])
     end
 
+    error NotFound do
+      status(404)
+    end
+
     private
 
     def json_api

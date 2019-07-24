@@ -172,6 +172,18 @@ describe "Users API" do
         `
       )
     end
+
+    it "handles missing users" do
+      perform_request(
+        method: :get,
+        path: "/user/2"
+      )
+
+      assert_response(
+        status: 404,
+        body: ""
+      )
+    end
   end
 
   describe "PATCH to /user/:id" do
