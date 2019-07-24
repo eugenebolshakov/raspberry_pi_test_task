@@ -24,7 +24,7 @@ framework):
 * Set ENV variables (see `.env.source` for a list of variables)
 * Run `rake setup`
 
-* Use
+# Use
 
 * Start the app with `rake start`
 * Run tests with `rake test`
