@@ -25,5 +25,21 @@ module UsersAPI
       assert_equal ["is not present"], user.errors[:email]
       assert_equal ["is not present"], user.errors[:password]
     end
+
+    it "validates uniqueness of username and email" do
+      User.new(
+        username: "username", 
+        email: "email@example.com", 
+        password: "pa$$w0rd"
+      ).save
+      user = User.new(
+        username: "username", 
+        email: "email@example.com", 
+        password: "pa$$w0rd"
+      )
+      refute user.valid?
+      assert_equal ["is already taken"], user.errors[:username]
+      assert_equal ["is already taken"], user.errors[:email]
+    end
   end
 end

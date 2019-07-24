@@ -7,6 +7,8 @@ module UsersAPI
     def validate
       super
       validates_presence [:username, :email, :password]
+      validates_unique :username
+      validates_unique :email
     end
 
     def password
