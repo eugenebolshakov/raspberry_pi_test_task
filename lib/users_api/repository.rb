@@ -27,7 +27,8 @@ module UsersAPI
     end
 
     def create(attrs)
-      User.new(attrs).then do |user|
+      User.new.then do |user|
+        user.set_fields(attrs, %w(username email password), missing: :skip)
         user.save
         user
       end
@@ -37,7 +38,8 @@ module UsersAPI
 
     def update(id, attrs)
       get(id).then do |user|
-        user.update(attrs)
+        user.set_fields(attrs, %w(username email password), missing: :skip)
+        user.save
         user
       end
     end
